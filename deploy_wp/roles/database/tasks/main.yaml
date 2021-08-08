@@ -1,0 +1,62 @@
+- name: MySQL Debian
+  block:
+    - name: Install MySQL
+      apt:
+        update_cache: yes
+        name: python3-pymysql, mysql-server
+        state: present
+    - name: Start MySQL
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+    - name: Create MySQL User
+      mysql_user:
+        check_implicit_admin: yes
+        login_unix_socket: "{{ mysql['socket'] }}"
+        name: "{{ mysql['user'] }}"
+        password: "{{ mysql['passwd'] }}"
+        host: "localhost"
+        priv: "{{ mysql['user'] }}.*:ALL,GRANT"
+    - name: Create Database
+      mysql_db:
+        login_unix_socket: "{{ mysql['socket'] }}"
+        name: "{{ mysql['db'] }}"
+        state: present
+    - name: bind-address
+      lineinfile:
+        path: "{{ mysql['config'] }}"
+        regexp: '^bind'
+        line: ''
+    - name: Unset mysqlx-bind-address
+      lineinfile:
+        path: "{{ mysql['config'] }}"
+        regexp: '^mysqlx'
+        line: ''
+      notify: Mysql Service Restart
+  when: ansible_facts['os_family'] == "Debian"
+- name: MySQL RedHat
+  block:
+    - name: Install MySQL Redhat
+      yum:
+        name: python3-pymysql, mysql-server
+        state: present
+    - name: Start MySQL Redhat
+      service:
+       name: mysql
+       state: started
+       enabled: yes
+    - name: Create MySQL User Redhat
+      mysql_user:
+        check_implicit_admin: yes
+        login_unix_socket: "{{ mysql['socket_Redhat'] }}"
+        name: "{{ mysql['user'] }}"
+        password: "{{ mysql['passwd'] }}"
+        host: "localhost"
+        priv: "{{ mysql['user'] }}.*:ALL,GRANT"
+    - name: Create Database Redhat
+      mysql_db:
+        login_unix_socket: "{{ mysql['socket_Redhat'] }}"
+        name: "{{ mysql['db'] }}"
+      notify: Mysqld Service Restart
+  when: ansible_facts['os_family'] == "RedHat"

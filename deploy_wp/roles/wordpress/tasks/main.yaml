@@ -1,0 +1,57 @@
+- name: Install wordpress
+  get_url:
+    url: "{{ wp['url'] }}"
+    checksum: "{{ wp['sha1'] }}"
+    dest: "{{ wp['source'] }}"
+  async: 300
+  poll: 0
+  register: down_result
+- name: Install apache2 Debian
+  block:
+    - name: Install apache2, php
+      apt:
+        name: apache2, php, php-mysql, php-gd, php-mbstring
+    - name: Apache2 Service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+  when: ansible_facts['os_family'] == "Debian"
+- name: Install httpd, php RedHat
+  block:
+    - name: Install httpd, php
+      yum:
+        name: httpd, php, php-mysql, php-gd, php-mbstring
+  when: ansible_facts['os_family'] == "RedHat"
+- name: sync
+  async_status:
+    jid: "{{ down_result.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 100
+  delay: 5
+- name: UnArchive wordpress 
+  unarchive:
+    src: "{{ wp['source'] }}"
+    dest: /var/www/html/
+    remote_src: true
+- name: Copy wp-config 
+  template:
+    src: wp-config.php.j2
+    dest: "{{ wp['config'] }}" 
+- name: Change port Debian
+  template:
+    src: ports.j2
+    dest: /etc/apache2/ports.conf
+    force: yes
+  notify:
+  - Restart apache2 
+  when: ansible_facts['os_family'] == "Debian"
+- name: Change port Redhat
+  template:
+    src: ports_redhat.j2
+    dest: /etc/httpd/conf/httpd.conf
+    force: true
+  notify:
+  - Restart httpd 
+  when: ansible_facts['os_family'] == "RedHat"

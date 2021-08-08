@@ -1,0 +1,12 @@
+wp:
+  url: https://wordpress.org/wordpress-5.8.tar.gz
+  source: /tmp/wordpress-5.8.tar.gz
+  config: /var/www/html/wordpress/wp-config.php
+  sha1: sha1:6476e69305ba557694424b04b9dea7352d988110
+mysql:
+  user: wordpress
+  user_passwd: wordpress
+  db: wordpress
+  host: "{{ db_host }}"
+apache:
+  port: "8080"

@@ -1,0 +1,14 @@
+- name: MySql
+  hosts: "{{ groups['ungrouped'][0] }}"
+  roles:
+    - database
+- name: Wordpress
+  hosts: "{{ groups['ungrouped'][0] }}"
+  roles:
+    - wordpress
+  post_tasks:
+    - name: Check Wordpress Status 
+      uri:
+        url: "http://{{ groups['ungrouped'][0] }}:8080/wordpress"
+        status_code: 200
+        return_content: yes

@@ -1,0 +1,7 @@
+mysql:
+  socket: /var/run/mysqld/mysqld.sock
+  socket_Redhat: /var/lib/mysql/mysql.sock
+  db: wordpress
+  user: wordpress
+  passwd: wordpress
+  config: /etc/mysql/mysql.conf.d/mysqld.cnf
